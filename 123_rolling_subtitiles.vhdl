@@ -1,0 +1,63 @@
+Clock.VHD
+LIBRARY IEEE;
+USE IEEE.STD_LOGIC_1164.ALL;
+ENTITY CLOCK  IS
+PORT(
+	 RESET	  :IN STD_LOGIC;
+	 CLK   :IN STD_LOGIC;
+	 Q0 :OUT STD_LOGIC_VECTOR(6 DOWNTO 0);
+	 Q1 :OUT STD_LOGIC_VECTOR(6 DOWNTO 0);
+	 Q2 :OUT STD_LOGIC_VECTOR(6 DOWNTO 0);
+	 Q3 :OUT STD_LOGIC_VECTOR(6 DOWNTO 0);
+	 Q4 :OUT STD_LOGIC_VECTOR(6 DOWNTO 0));
+END;
+ARCHITECTURE ONE OF  CLOCK IS
+ 
+	TYPE FSM_ST IS (S0,S1,S2,S3,S4,S5,S6,S7);
+	SIGNAL current_state,next_state:FSM_ST;
+	SIGNAL DATA:	INTEGER RANGE 0 TO 25000000;
+	SIGNAL CLKIN,Q:	STD_LOGIC;
+BEGIN
+  
+ REG:PROCESS (RESET,CLKIN)
+	BEGIN
+	 IF RESET ='0' THEN current_state<=S0;
+	 ELSIF CLKIN='1'AND CLKIN'EVENT THEN
+	 current_state<= next_state;
+	 END IF;
+	END PROCESS;
+ COM:PROCESS(current_state,next_state)
+   BEGIN
+     CASE current_state IS
+        WHEN S0=>Q0<=not"0000000";Q1<=not"0000000";Q2<=not"0000000";Q3<=not"0000000";Q4<=not"0000000";
+			next_state<=S1;
+	    WHEN S1=>Q0<=not"0000110";Q1<=not"0000000";Q2<=not"0000000";Q3<=not"0000000";Q4<=not"0000000";
+			next_state<=S2;
+	    WHEN S2=>Q0<=not"1011011";Q1<=not"0000110";Q2<=not"0000000";Q3<=not"0000000";Q4<=not"0000000";
+			next_state<=S3;
+		WHEN S3=>Q0<=not"1001111";Q1<=not"1011011";Q2<=not"0000110";Q3<=not"0000000";Q4<=not"0000000";
+			next_state<=S4;
+		WHEN S4=>Q0<=not"0000000";Q1<=not"1001111";Q2<=not"1011011";Q3<=not"0000110";Q4<=not"0000000";
+			next_state<=S5;
+		WHEN S5=>Q0<=not"0000000";Q1<=not"0000000";Q2<=not"1001111";Q3<=not"1011011";Q4<=not"0000110";
+			next_state<=S6;
+		WHEN S6=>Q0<=not"0000110";Q1<=not"0000000";Q2<=not"0000000";Q3<=not"1001111";Q4<=not"1011011";
+			next_state<=S7;
+		WHEN S7=>Q0<=not"1011011";Q1<=not"0000110";Q2<=not"0000000";Q3<=not"0000000";Q4<=not"1001111";
+			next_state<=S3;
+	 END CASE;
+	END PROCESS;
+CLOCK:		  PROCESS(CLK)
+			BEGIN
+				IF RISING_EDGE(CLK) THEN
+					IF(DATA=24999999) THEN 
+						DATA<=0;
+						Q<=NOT Q;
+					ELSE
+					DATA<=DATA+1;
+					END IF;
+				END IF;
+			CLKIN <= Q;
+		END PROCESS;
+		
+END ONE;
